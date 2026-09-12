@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Introduction & Consent · Assessment Lab{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">PERSONALITY + AI ATTITUDES</p>
+  <h1>A short interactive assessment for a pilot research exercise.</h1>
+  <p class="lead">This study explores Big Five personality traits and two exploratory tendencies related to AI: willingness to adopt useful AI tools and critical checking of AI outputs.</p>
+</section>
+<div class="grid two">
+  <section class="card"><h2>What we collect</h2><p>Your responses to 30 rating-scale items, automatically calculated scale scores, completion timestamps, and optional usability feedback. We do not ask for your name, email, phone number, employer, or other unnecessary identifying information.</p></section>
+  <section class="card"><h2>How it is used</h2><p>Responses are stored for aggregate analysis in an admin dashboard. This is a pilot for educational/research exploration, not a validated diagnostic test and not a clinical or medical assessment.</p></section>
+</div>
+<section class="card consent-card">
+  <h2>Consent</h2>
+  <p>Participation is voluntary. You may stop before submitting. By continuing, you confirm that you understand the purpose and agree to anonymous storage and aggregate analysis of your responses.</p>
+  <form method="post" action="{{ url_for('start') }}">
+    <label class="consent"><input type="checkbox" name="consent" value="yes" required> I have read the information above and voluntarily agree to participate.</label>
+    <button class="primary" type="submit">Start assessment →</button>
+  </form>
+</section>
+{% endblock %}

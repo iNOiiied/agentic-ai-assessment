@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Questionnaire · Assessment Lab{% endblock %}
+{% block content %}
+<div class="progress-wrap"><div class="progress-meta"><span>30 items</span><span id="progressText">0% complete</span></div><div class="progress"><div id="progressBar"></div></div></div>
+<form method="post" id="assessmentForm">
+  <section class="section-intro"><p class="eyebrow">PART 1</p><h1>Personality</h1><p>Rate how accurately each statement describes you: 1 = Very inaccurate, 5 = Very accurate.</p></section>
+  {% for item in personality_items %}
+    <article class="question card" data-item="{{ item[0] }}"><div class="qnum">{{ loop.index }}</div><h3>{{ item[1] }}</h3>
+      <div class="likert" role="radiogroup" aria-label="{{ item[1] }}">
+        {% for value, label in [(1,'Very inaccurate'),(2,'Inaccurate'),(3,'Neither'),(4,'Accurate'),(5,'Very accurate')] %}
+        <label><input required type="radio" name="{{ item[0] }}" value="{{ value }}" {% if previous and previous.get(item[0]) == value|string %}checked{% endif %}><span>{{ value }}<small>{{ label }}</small></span></label>
+        {% endfor %}
+      </div>
+    </article>
+  {% endfor %}
+
+  <section class="section-intro"><p class="eyebrow">PART 2</p><h1>AI attitudes & behavioural tendencies</h1><p>Rate your agreement: 1 = Strongly disagree, 5 = Strongly agree. These items are exploratory and are not presented as a validated psychological scale.</p></section>
+  {% for item in attitude_items %}
+    <article class="question card" data-item="{{ item[0] }}"><div class="qnum">{{ loop.index + 20 }}</div><h3>{{ item[1] }}</h3>
+      <div class="likert" role="radiogroup" aria-label="{{ item[1] }}">
+        {% for value, label in [(1,'Strongly disagree'),(2,'Disagree'),(3,'Neither'),(4,'Agree'),(5,'Strongly agree')] %}
+        <label><input required type="radio" name="{{ item[0] }}" value="{{ value }}" {% if previous and previous.get(item[0]) == value|string %}checked{% endif %}><span>{{ value }}<small>{{ label }}</small></span></label>
+        {% endfor %}
+      </div>
+    </article>
+  {% endfor %}
+  <button class="primary submit" type="submit">Calculate my results →</button>
+</form>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='app.js') }}"></script>{% endblock %}
