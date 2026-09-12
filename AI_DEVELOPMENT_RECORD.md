@@ -1,52 +1,66 @@
-# AI Development Record
+# AI Development Record — Assessment Lab
 
-## Goal decomposition
+## Development approach
 
-The agent decomposed the challenge into six deliverable areas: participant consent, questionnaire UX, scoring correctness, data persistence, research analytics, and evidence/reporting. The design intentionally separates participant-facing interpretation from researcher-facing aggregate analysis.
+I used an AI coding assistant as an agent throughout the project. The agent helped decompose the brief, generate and modify code, reason about scoring, write tests, troubleshoot deployment, and interpret pilot results. I did not treat generated output as automatically correct; I repeatedly tested, inspected, and revised it.
 
-## Important agent interactions
+## Selected high-impact interactions
 
-### 1. Instrument and construct selection
-**Instruction to agent:** use an established Big Five framework, avoid inventing a personality model, and choose an attitude construct that can be measured clearly without making unsupported validation claims.
+### 1. Turning the brief into an architecture
+**Instruction:** break the assignment into the smallest system that still meets every required deliverable.
 
-**Agent contribution:** selected the 20-item Mini-IPIP for Big Five coverage and proposed a separate exploratory construct around responsible AI adoption/critical checking.
+**AI contribution:** proposed separate components for consent, questionnaire, scoring, participant results, anonymous storage, feedback, admin analytics, testing, deployment, and documentation.
 
-**Human verification:** checked that Mini-IPIP uses four items per Big Five factor and verified the keying direction against IPIP-published item lists. Confirmed that IPIP materials are public domain.
+**Human verification/correction:** checked the architecture against the assignment line by line and kept the scope deliberately simple rather than adding unnecessary features.
 
-### 2. Scoring architecture
-**Instruction to agent:** keep participant scale scores interpretable on the original 1–5 metric, handle negatively keyed items correctly, and make the scoring testable independently from the UI.
+### 2. Construct and item design
+**Instruction:** use an established Big Five framework and add an AI-related attitude/behaviour component without making unsupported clinical claims.
 
-**Agent contribution:** implemented `score_response(raw, reverse)` and `calculate_scale_scores(...)` as pure functions. Reverse scoring is `6 - response`; each scale is the mean of its keyed items.
+**AI contribution:** used a 20-item Mini-IPIP structure and proposed two exploratory AI scales: AI Adoption Attitude and Critical AI Use.
 
-**Verification:** automated tests check both endpoints (1↔5), neutral invariance (3 remains 3), and a synthetic case where positive items are answered 5 and reverse items 1; every scale must score 5.0.
+**Human verification/correction:** kept Big Five interpretation descriptive, labeled the AI scales exploratory, and avoided diagnostic/normative language. The later pilot alpha for Critical AI Use (0.164) demonstrated that sensible-looking AI-generated items still require empirical validation.
 
-### 3. Research dashboard
-**Instruction to agent:** cover all minimum dashboard requirements and add useful but defensible pilot statistics.
+### 3. Scoring and reverse-keying
+**Instruction:** keep all final scale scores on a 1–5 metric and make reverse scoring independently testable.
 
-**Agent contribution:** added participant count, average scores, score distributions, item-level distributions, completion rate/time, Cronbach's alpha, correlations, feedback summary, and CSV export.
+**AI contribution:** implemented reverse scoring as `6 - response`, scale means, and pure scoring functions.
 
-**Verification:** reliability is computed on scored (reverse-corrected) item values. The UI labels alpha as pilot/internal-consistency evidence and explicitly warns that n≈10 is not formal validation.
+**Human verification/correction:** ran six automated tests covering forward scoring, reverse endpoints, neutral responses, an all-maximum known pattern, incomplete submissions, and a known alpha case. All six passed.
 
-### 4. Privacy and consent
-**Instruction to agent:** meet the brief while minimizing PII.
+### 4. Dashboard and psychometric summaries
+**Instruction:** satisfy the required admin metrics and add useful pilot diagnostics without claiming formal validation.
 
-**Agent contribution:** uses random participant UUIDs, collects no names/emails/phone numbers, explains research use, marks feedback as optional, and includes a non-clinical disclaimer.
+**AI contribution:** implemented participant counts, completion statistics, means, score distributions, item distributions, Cronbach's alpha, Pearson correlations, usability summaries, and CSV export.
 
-## Examples of AI mistakes/risks and corrections
+**Human verification/correction:** independently recalculated all seven scale means and the correlation matrix from the 15 completed rows in the exported workbook. Values matched the dashboard to rounding. Alpha estimates were explicitly labeled unstable in a small pilot.
 
-1. **Risk: treating a tiny pilot as validation.** The implementation explicitly describes 10 participants as a pilot and warns against interpreting reliability coefficients as validation.
-2. **Risk: reverse-keying errors.** Item direction is encoded in one source-of-truth item table and tested with synthetic response patterns.
-3. **Risk: conflating AI adoption with unquestioning trust.** The design separates `AI Adoption Attitude` from `Critical AI Use` instead of using one ambiguous total score.
-4. **Risk: ephemeral deployment storage.** Local SQLite is convenient for development, but the README recommends managed PostgreSQL for production persistence.
-5. **Risk: unsupported psychological interpretation.** Participant results report relative tendencies and score meanings without diagnostic labels or normative claims.
+### 5. Deployment troubleshooting
+**Instruction:** obtain a public URL without exposing secrets or participant data.
 
-## What remains a human responsibility
+**AI contribution:** first proposed Render, then helped move the application to PythonAnywhere when Render required card verification. It also helped configure GitHub access, the Python virtual environment, WSGI, static files, and admin secrets.
 
-- Deploying the app to a public hosting account.
-- Recruiting at least 10 independent participants.
-- Ensuring participants actually consent.
-- Reviewing the pilot data for anomalies.
-- Deciding what changes to make after feedback.
-- Confirming final repository/URL accessibility before submission.
+**Human verification/correction:** several deployment recommendations needed adjustment in response to the real environment, as documented below.
 
-This record is intentionally selective: it documents high-impact AI interactions and verification rather than dumping every generated prompt.
+## Concrete AI mistakes or weak assumptions
+
+1. **Render was treated as a universally frictionless free deployment path.** My account required card verification even on the Free tier, so the recommendation was not usable. I switched to PythonAnywhere.
+2. **The environment setup did not initially force a `which python` / `which pip` check before package installation.** Dependencies were installed into the user site, triggering compatibility warnings with preinstalled Dash. I corrected this by creating and activating `assessment-env` and reinstalling requirements there.
+3. **The early deployment documentation over-emphasized PostgreSQL as mandatory for production.** For this small PythonAnywhere pilot, persistent SQLite was adequate. PostgreSQL remains a future scaling choice rather than a requirement for the current study.
+4. **The AI-authored Critical AI Use items were not psychometrically strong in the pilot.** Cronbach's alpha was 0.164, so I did not present the scale as validated. This is the clearest example of why generated questionnaire content must be empirically checked.
+5. **The AI could have encouraged over-interpretation of small-sample statistics.** I corrected the reporting language so that correlations and alpha values are treated as exploratory diagnostics only.
+
+## How I identified and corrected the mistakes
+
+- Read actual terminal errors instead of applying generic fixes.
+- Re-ran the project from a clean directory after duplicate Windows filenames caused the wrong file to be executed.
+- Diagnosed GitHub connectivity by testing port 443 and then configuring Git to use the existing Clash proxy (`127.0.0.1:7890`).
+- Changed hosting platform after Render's card requirement blocked deployment.
+- Verified the PythonAnywhere virtual environment before reinstalling packages.
+- Ran all six unit tests successfully in the deployment environment.
+- Completed a production end-to-end submission and confirmed the record appeared in `/admin`.
+- Exported the final data and recomputed means/correlations independently.
+- Used the pilot alpha values as evidence for scale revision rather than ignoring weak results.
+
+## What remained my responsibility
+
+The AI did not recruit participants, provide consent on their behalf, decide whether the pilot was ethically appropriate, or validate the measures. I remained responsible for the final code, deployment, participant recruitment, data handling, statistical interpretation, and the limitations stated in the report.

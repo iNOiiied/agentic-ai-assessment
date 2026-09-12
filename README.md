@@ -1,52 +1,53 @@
-# Agentic AI Web Assessment Challenge — Assessment Lab
+# Assessment Lab — Agentic AI Web Assessment
 
-A deployable Flask web application for a pilot assessment covering:
+Public pilot web application for the Agentic AI Web Assessment Challenge.
 
-1. **Big Five personality** using the 20-item Mini-IPIP (4 items per trait).
-2. **AI attitudes / behavioural tendencies** using two explicitly exploratory, self-authored scales:
-   - AI Adoption Attitude (6 items)
-   - Critical AI Use (4 items)
+**Live site:** https://inoiiied.pythonanywhere.com  
+**Repository:** https://github.com/iNOiiied/agentic-ai-assessment
 
-The platform includes informed consent, an interactive 30-item questionnaire, automatic reverse-keyed scoring, participant result charts, anonymous response storage, optional user feedback, a password-protected research dashboard, item distributions, completion statistics, Cronbach's alpha, correlations, and CSV export.
+## What the platform measures
 
-## Why this design
+- **Big Five personality** via a 20-item Mini-IPIP structure (4 items per trait): Extraversion, Agreeableness, Conscientiousness, Neuroticism, and Openness / Intellect.
+- **AI Adoption Attitude** (6 exploratory items).
+- **Critical AI Use** (4 exploratory items).
 
-The task prioritizes a working, carefully evaluated system over unnecessary complexity. This implementation is intentionally small enough to inspect and test while still covering every platform requirement.
+All items use a 1–5 response scale. Reverse-keyed items are scored as `6 - response`, and each scale is the mean of its scored items.
 
-### Personality instrument
+## Main features
 
-The Mini-IPIP is a 20-item short form of an IPIP Big Five measure described by Donnellan et al. (2006). IPIP items/scales are public domain. The app uses a 1–5 accuracy response scale and reverse-scores negatively keyed items using:
+- introduction and consent
+- 30-item interactive questionnaire
+- automatic reverse-keyed scoring
+- participant results page with charts and cautious interpretation
+- anonymous UUID-based response storage
+- optional usability feedback
+- password-protected `/admin` dashboard
+- participant/completion statistics
+- average scores and score distributions
+- item-level response distributions
+- Cronbach's alpha
+- Pearson scale correlations
+- CSV export
 
-```text
-reverse_scored = 6 - raw_response
-```
+## Deployment
 
-Each Big Five score is the **mean of four scored items**, keeping the result on a 1–5 scale.
+The current pilot is deployed on **PythonAnywhere** using Python 3.13, Flask, Flask-SQLAlchemy, Jinja templates, JavaScript/Chart.js, and a persistent SQLite database in the hosting account.
 
-### AI attitude construct
+The repository also contains Gunicorn/Docker configuration for migration to another host. For a larger study, moving to managed PostgreSQL would be preferable, but persistent SQLite was adequate for this small pilot.
 
-The AI section is **not claimed to be validated**. It is a pilot measure created for this challenge:
-
-- **AI Adoption Attitude:** willingness to learn, experiment with, and use AI where useful.
-- **Critical AI Use:** tendency to check important claims and compare AI suggestions with other evidence.
-
-Reverse-keyed items are scored with the same `6 - response` rule. Scale scores are item means.
-
-## Run locally
+## Local setup
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+# Windows: .venv\Scripts\activate
+# macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env             # then export/set variables as needed
 python app.py
 ```
 
-Open `http://127.0.0.1:5000`.
-
 Admin dashboard: `http://127.0.0.1:5000/admin`
 
-Default local admin password: `change-me` (set `ADMIN_PASSWORD` in production).
+Set a strong `ADMIN_PASSWORD` and `SECRET_KEY` outside the repository for deployment.
 
 ## Tests
 
@@ -54,96 +55,28 @@ Default local admin password: `change-me` (set `ADMIN_PASSWORD` in production).
 python -m unittest discover -s tests -v
 ```
 
-Tests explicitly verify positive scoring, reverse scoring, neutral-response invariance, application of keying across all scales, incomplete submissions, and Cronbach-alpha behavior on perfectly consistent data.
+The six tests cover forward scoring, reverse scoring, neutral responses, known maximum patterns, incomplete submissions, and a known reliability case.
 
-## Data model
+## Pilot outcome
 
-- `Participant`: anonymous UUID and timing metadata
-- `ResponseItem`: item-level raw and scored responses
-- `Score`: scale-level scores
-- `Feedback`: optional usability ratings and comments
+Final pilot dashboard:
 
-No names, emails, phone numbers, or other unnecessary PII are requested.
+- 21 starts
+- 15 completed submissions
+- 71.4% completion rate
+- 1.5 min median recorded completion time
+- 12 usability feedback responses
 
-## Research dashboard
+Usability means were 4.42/5 for understandability, 4.33/5 for ease of use, and 4.67/5 for result clarity.
 
-`/admin` displays:
+These results are **pilot evidence, not formal psychometric validation**. Several reliability coefficients were low, particularly the exploratory Critical AI Use scale, which will need item revision and a larger sample.
 
-- started/completed participant counts
-- completion rate and median completion time
-- average scale scores
-- score distributions
-- raw item-level response distributions
-- Cronbach's alpha for each scale
-- scale-score Pearson correlations
-- aggregate usability ratings
-- CSV export
+## Privacy and limitations
 
-**Important:** Cronbach's alpha from a pilot of ~10 people is unstable. Treat it as a diagnostic check, not evidence of formal validation.
+No names, emails, phone numbers, or other unnecessary PII are requested. Participant IDs are random UUIDs. Individual results are descriptive and are not clinical/medical diagnoses or high-stakes psychological judgments.
 
-## Production deployment
+## References
 
-The app is container-ready (`Dockerfile`) and supports either:
+Donnellan, M. B., Oswald, F. L., Baird, B. M., & Lucas, R. E. (2006). *The Mini-IPIP scales: Tiny-yet-effective measures of the Big Five factors of personality*. Psychological Assessment, 18(2), 192–203.
 
-- local SQLite (default), or
-- PostgreSQL via `DATABASE_URL` (recommended for deployment).
-
-Set these secrets in the hosting platform:
-
-```text
-SECRET_KEY=<long random value>
-ADMIN_PASSWORD=<strong password>
-DATABASE_URL=<managed PostgreSQL URL>
-```
-
-Then deploy the repository using a Python/Docker host such as Render, Railway, Fly.io, or another comparable service. The start command is:
-
-```text
-gunicorn app:app
-```
-
-For a real pilot, use persistent PostgreSQL rather than ephemeral container storage.
-
-## Pilot evaluation procedure
-
-1. Deploy and verify `/health` returns `{ "status": "ok" }`.
-2. Run the automated scoring tests.
-3. Complete one manual test using known response patterns.
-4. Share the public URL with **at least 10 independent volunteers**.
-5. Ask participants to complete the assessment and the optional usability feedback.
-6. Use `/admin` to inspect completion, distributions, unusual patterns, reliability, and comments.
-7. Export anonymized CSV for the submission evidence/analysis.
-8. Summarize what changed based on feedback.
-
-Do **not** replace this step with fabricated data. Demo data can be useful for UI testing, but it is not evidence of the required real-user pilot.
-
-## Suggested repository structure
-
-```text
-.
-├── app.py
-├── requirements.txt
-├── Dockerfile
-├── Procfile
-├── README.md
-├── REPORT.md
-├── AI_DEVELOPMENT_RECORD.md
-├── PILOT_EVALUATION_GUIDE.md
-├── templates/
-├── static/
-├── tests/
-└── data/
-```
-
-## Sources
-
-- International Personality Item Pool (IPIP): https://ipip.ori.org/
-- Donnellan, M. B., Oswald, F. L., Baird, B. M., & Lucas, R. E. (2006). *The Mini-IPIP Scales: Tiny-Yet-Effective Measures of the Big Five Factors of Personality*. Psychological Assessment, 18(2), 192–203. DOI: 10.1037/1040-3590.18.2.192.
-
-## Limitations
-
-- The Mini-IPIP is intentionally short and does not provide facet-level personality assessment.
-- Individual scores are descriptive and should not be treated as diagnoses or high-stakes judgments.
-- The AI attitude scales are self-authored for this exercise and require future validation.
-- A 10-person pilot is a usability/pipeline check, not psychometric validation.
-- Correlations and alpha estimates from tiny samples can be highly unstable.
+International Personality Item Pool: https://ipip.ori.org/
